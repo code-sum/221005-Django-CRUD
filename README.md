@@ -552,6 +552,7 @@ urlpatterns = [
 
 def detail(request, pk):
     # 특정 글을 가져온다.
+    #                        .get(모델칼럼명=urls.py에서 쓴 인자)
     article = Article.objects.get(pk=pk)
     # template 에 객체 전달
     context = {
@@ -734,9 +735,46 @@ def delete(request, pk):
 
 
 
-
-
 ## 5. Admin site
+
+> 사용자가 아닌 서버의 관리자가 활용하기 위한 페이지
+>
+> 모델 DB 를 admin.py 에 등록하고 관리
+>
+> http://127.0.0.1:8000/admin/ 에 접속하면 사용자 이름&비밀번호 입력해야 하는데,
+>
+> 아직 이 2가지 정보 설정이 안된 상태니까 아래 명령어로 설정 시작하기
+
+### 5-1. 가상환경 (끈 상태였다면 다시) 켜기
+
+```bash
+$ source venv/Scripts/activate
+(venv)
+```
+
+### 5-2. admin 계정 생성
+
+```bash
+$ python manage.py createsuperuser
+
+# username 과 password 를 입력해 관리자 계정을 생성
+# email은 선택사항이기 때문에 입력하지 않고 enter 가능
+# 비밀번호 생성 시 보안상 터미널에 입력되지 않으니 무시하고 입력을 이어감
+```
+
+```python
+# articles/admin.py 을 아래와 같이 채워놓기
+
+from django.contrib import admin
+from .models import Article
+
+# Register your models here.
+
+admin.site.register(Article)
+
+# 여기까지 작성하고 http://127.0.0.1:8000/admin/ 에 로그인해보면
+# 여태 작성된 Article objects 확인할 수 있고, 각각 관리(삭제/수정/조회)할 수 있음
+```
 
 
 

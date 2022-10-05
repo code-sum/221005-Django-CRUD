@@ -35,6 +35,7 @@ def create(request):
 
 def detail(request, pk):
     # 특정 글을 가져온다.
+    #                        .get(모델칼럼명=urls.py에서 쓴 인자)
     article = Article.objects.get(pk=pk)
     # template 에 객체 전달
     context = {
