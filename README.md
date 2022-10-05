@@ -9,13 +9,17 @@
 >
 > 💡 Django ModelForm I 필기와의 차이점 : 
 >
-> - (CRUD 시작할때) 처음부터 ModelForm 활용해서  게시판 기능 구현하기
+> - (CRUD 시작할때) 처음부터 ModelForm 활용해서  게시판 기능 구현
+> - CRUD 중에 D(삭제) 기능 추가 구현
+>   - Django ModelForm I 필기는 CRU 까지만 구현
 >
-> - Bootstrap5 패키지 활용하기
+> - Bootstrap5 패키지 활용
 >   - 🗂️ [(참고자료)](https://pypi.org/project/django-bootstrap5/)
-> - Django settings.py 에서 시크릿 키 분리하기
+> - Django settings.py 에서 시크릿 키 분리
 >   - 🗂️ [(참고자료)](https://grape-blog.tistory.com/17)
-> - (프로젝트 추가 설정 단계에) base.html 적용하기
+> - (프로젝트 추가 설정 단계에) base.html 적용
+> - Admin site
+> - Static files
 
 
 
@@ -146,6 +150,12 @@ INSTALLED_APPS = [
 #### 2-3-1. urls.py 분리 작업
 
 > url 관리를 각 앱에서 관리할 수 있도록, include 활용해 분리하기
+>
+> 💡 활용 : `articles:index` => `/articles/`
+>
+>   ex) Template 에서 활용 : `{% url 'articles:index' %}`
+>
+>   ex) View 에서 활용 : `redirect('articles:index')`
 
 ```python
 # 먼저 pjt/urls.py 에서 아래와 같이 include import 한 다음
@@ -222,9 +232,13 @@ def index(request):
 <!-- articles/templates/articles 폴더 생성 후 
      폴더 최하단에 index.html 생성 -->
 
-<body>
-    <h1>안녕!</h1>
-</body>
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>안녕!</h1>
+
+{% endblock %}
 
 <!-- 여기까지 작성 후,
      http://127.0.0.1:8000/articles/ 접속했을때
