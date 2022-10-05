@@ -436,9 +436,7 @@ def create(request):
      실제 DB에 반영되고 있는지 Open Databese 통해 확인하기 -->
 ```
 
-
-
-### 4-2. [READ] 게시글 목록
+### 4-3. [READ] 게시글 목록 읽기
 
 > 게시글 목록 기능을 구현하기 전에, 가장 먼저 살펴볼 부분은
 >
@@ -498,67 +496,7 @@ def create(request):
 
 
 
-- HTTP POST
-
-  - 위와 같이 코드를 작성하고 발생할 수 있는 이슈가 보안, 유효성 문제
-  - 예를 들어 우리가 만든 form 이 회원가입을 목적으로 한다면, 클라이언트가 데이터를 submit 할 때 주소창(url)이나 log 에 비밀번호처럼 민감한 개인정보가 노출됨
-  - HTTP 요청 메세지의 구성을 보면([이미지](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)) `GET` 메서드가 활용되고 있음을 알 수 있는데 새로운 메서드인 `POST ` 활용해서 이런 이슈를 해결할 수 있음
-  - 따라서 form 은 `POST` 이용해서 작성하는 것이 일반적임
-  - **앞으로도 게시글 생성(CREATE 구현)할 때 무조건 POST 활용하자**
-
-  | HTTP request methods | [(source)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
-  | -------------------- | ------------------------------------------------------------ |
-  | `GET`                | The GET method requests a representation of the specified resource. Requests using GET should only retrieve data. (=리소스의 표현, **데이터를 '조회'할 때만 사용**) [ex. Google 검색창 form 의 method] |
-  | `POST`               | The POST method submits an entity to the specified resource, often causing a change in state or side effects on the server. (=서버의 상태를 변화시키고, **데이터를 '제출/등록'할 때 사용**) [ex. Google 회원가입창 form 의 method] |
-
-- 위 내용을 참조해서 우리가 작성했던 코드를 바꿔보면 url 요청이 `"POST /articles/create/ HTTP/1.1" 302 0` 이런식으로 보안처리 되어서 넘어감
-
-  ```django
-  <!-- 변화 1. --> 
-  <!-- new.html 의 form 태그 안에 method="POST" 속성 추가 -->
-  <!-- {% csrf_token %} 추가  -->
-  
-  <form action="{% url 'articles:create' %} method="POST">
-    {% csrf_token %}
-    <label for="title">제목 : </label>
-    <input type="text" name="title" id="title">
-    <label for="content">내용 : </label>
-    <textarea name="content" id="content" cols="30" rows="10"></textarea>
-    <input type="submit" value="글쓰기">
-  </form>
-                                    
-  <!-- csrf 는 사이트 간 요청 위조의 준말로, 
-       다른 사이트에서 요청이 변조된건 아닌지 확인하는 Django 기본 기능 -->
-  ```
-
-
-
-
 - ModelForm
-
-  - DB 기반의 어플리케이션을 개발하다보면, HTML Form(UI)은 Django 의 모델(DB)과 매우 밀접한 관계를 갖게 됨
-    - 사용자로부터 값을 받아 DB에 저장하여 활용하기 때문
-    - 즉, 모델에 정의한 필드의 구성 및 종류에 따라 HTML Form 이 결정됨
-  - 사용자가 입력한 값이 DB의 데이터 형식과 일치하는지를 확인하는 유효성 검증이 반드시 필요하며 이는 서버 사이드에서 반드시 처리해야 함
-
-- 위 내용을 참조해서 우리가 작성했던 코드를 바꿔보면 FE, BE 단에서 이중처리를 해야됨
-
-  ```django
-  <!-- 변화 1. FE 단에서 처리하기 -->
-  <!-- 일단 new.html 의 input, textarea 태그 안에 required 써주면 
-  	사용자가 제목이나 내용을 공란으로 제출할 때 경고창 띄워주긴 하지만,
-  	개발자도구 열어서 required 지우면 공란 제출이 가능해져버림 -->
-  <!-- 궁극적으로 서버 사이드에도 유효성 검증 로직을 넣어야 한다는 말 -->
-  
-  <form action="{% url 'articles:create' %} method="POST" required>
-    {% csrf_token %}
-    <label for="title">제목 : </label>
-    <input type="text" name="title" id="title" required>
-    <label for="content">내용 : </label>
-    <textarea name="content" id="content" cols="30" rows="10" required></textarea>
-    <input type="submit" value="글쓰기">
-  </form>
-  ```
 
   ```python
   # 변화 3. BE 단에서 ModelForm 생성하기(2)
@@ -594,8 +532,9 @@ def create(request):
       Article.objects.create(title=title, content=content)
       return redirect('articles:index')
   ```
+
   
-  
+
 
 ### 4-3. [READ_detail] 상세보기
 
