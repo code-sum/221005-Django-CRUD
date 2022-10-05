@@ -7,9 +7,15 @@
 >
 > 
 >
-> 💡 Django ModelForm I 과의 차이점 : 
+> 💡 Django ModelForm I 필기와의 차이점 : 
 >
-> 처음부터 ModelForm 활용해서  게시판 기능 구현하기
+> - 처음부터 ModelForm 활용해서  게시판 기능 구현하기
+>
+> - Bootstrap5 패키지 활용하기
+>   - 🗂️ [(참고자료)](https://pypi.org/project/django-bootstrap5/)
+> - Django settings.py 에서 시크릿 키 분리하기
+>   - 🗂️ [(참고자료)](https://grape-blog.tistory.com/17)
+> - (앱 생성 및 등록 다음 단계에) base.html 적용하기
 
 
 
@@ -31,7 +37,7 @@ $ source venv/Scripts/activate
 (venv)
 ```
 
-### 1-2. Django 설치 및 기록
+### 1-2. Django / Bootstrap5 설치 및 기록
 
 ```bash
 # upgrade pip
@@ -40,7 +46,8 @@ $ python -m pip install --upgrade pip
 # install Django 
 $ pip install django==3.2.13
 
-# install 
+# install Bootstrap5
+$ pip install django-bootstrap5
 
 # 내가 활용하고 있는 패키지들 기록지에 남기기
 $ pip freeze > requirements.txt
@@ -56,9 +63,28 @@ $ django-admin startproject pjt .
 $ python manage.py runserver
 ```
 
-### 1-4. 프로젝트 추가 설정(internationalization)
+### 1-4. 프로젝트 추가 설정
 
 > 다국어 지원은 django i18n 검색 결과 참조
+
+#### 1-4-1. 시크릿 키 분리하기
+
+> 🗂️[(참고자료)](https://grape-blog.tistory.com/17)
+
+#### 1-4-2. Bootstrap5 app 등록
+
+```python
+# pjt/settings.py 중반부에서 
+
+# INSTALLED_APPS = [] 괄호 내 상단에 아래와 같이 Bootstrap5  앱 등록
+
+INSTALLED_APPS = [
+    'django_bootstrap5',
+    ...,
+]
+```
+
+#### 1-4-3. internationalization
 
 ```python
 # pjt/settings.py 하단으로 내려가서
