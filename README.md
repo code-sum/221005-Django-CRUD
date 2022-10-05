@@ -15,7 +15,7 @@
 >   - 🗂️ [(참고자료)](https://pypi.org/project/django-bootstrap5/)
 > - Django settings.py 에서 시크릿 키 분리하기
 >   - 🗂️ [(참고자료)](https://grape-blog.tistory.com/17)
-> - (앱 생성 및 등록 다음 단계에) base.html 적용하기
+> - (프로젝트 추가 설정 단계에) base.html 적용하기
 
 
 
@@ -96,6 +96,10 @@ LANGUAGE_CODE = 'ko-kr'
 
 TIME_ZONE = 'Asia/Seoul'
 ```
+
+#### 1-4-4. base.html 생성
+
+
 
 
 
