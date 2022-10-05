@@ -251,7 +251,7 @@ def index(request):
 
 > SW개발에서 UI 기능 / DB 는 서로 밀접한 연관을 맺고 있음
 >
-> CRUD 를 만든다는 것은 DB의 생성, 수정, 삭제를 고려해야 하는 것이므로, CRUD 로 넘어가기 전에 모델 정의가 선행되어야함
+> CRUD 를 만든다는 것은 DB의 생성, 조회, 수정, 삭제를 고려해야 하는 것이므로, CRUD 로 넘어가기 전에 모델 정의가 선행되어야함
 
 ### 3-1. 클래스 정의
 
@@ -277,13 +277,16 @@ class Article(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-# 2. 설계한 모델을 DB에 반영
+# 2. 설계한 모델을 DB에 반영(아래 3-2. 부터 3-4. 까지)
 ```
 
 ### 3-2. 마이그레이션 파일 생성
 
 ```bash
 $ python manage.py makemigrations
+
+# 위 명령어 입력 후, 
+# articles/migrations/0001_initial.py 생성된 것 확인
 ```
 
 ### 3-3. DB 반영 (`migrate`)
