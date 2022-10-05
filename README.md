@@ -6,6 +6,7 @@
 > 4. CRUD 기능 구현
 > 5. Admin site
 > 6. Static files
+> 7. Django Bootstrap5
 >
 > 
 >
@@ -15,7 +16,7 @@
 > - CRUD 중에 D(삭제) 기능 추가 구현
 >   - Django ModelForm I 필기는 CRU 까지만 구현
 >
-> - Bootstrap5 패키지 활용
+> - Django Bootstrap5 패키지 활용
 >   - 🗂️ [(참고자료)](https://pypi.org/project/django-bootstrap5/)
 > - Django settings.py 에서 시크릿 키 분리
 >   - 🗂️ [(참고자료)](https://grape-blog.tistory.com/17)
@@ -802,18 +803,17 @@ STATIC_URL = '/static/'
 ### 6-2. 템플릿에서 static 템플릿 태그 사용
 
 ```django
+<!-- index.html 에 이미지(static file) 1장 넣어보기 -->
 <!-- static 템플릿 태그 사용함으로써 지정된 상대경로에 대한 URL 빌드 -->
-<!-- 수정된 코드 : 아래 index.html 에서 {% load static %}, 
-                 <img> 태그 부분 참조 -->
-
-{% load static %}
 
 {% extends 'base.html' %}
 
 {% block content %}
 
+{% load static %}
+
 <h1>안녕!</h1>
-<img src="{% static 'django_ex.png' %}" alt="img">
+<img src="{% static 'wow.jpg' %}" alt="img">
 
 <a href="{% url 'articles:create' %}">새글쓰기</a>
 {% for article in articles %}
@@ -827,5 +827,36 @@ STATIC_URL = '/static/'
 
 ### 6-3. 앱의 static 디렉토리에 정적 파일을 저장
 
-- 예시) articles/static/django_ex.png
+- 예시) articles/static/wow.jpg 저장
 - 생성된 static 폴더에는 images, css, js, fonts 파일들을 보관하는 다양한 폴더를 생성할 수 있음 (상세 내용은 pdf 참조)
+
+
+
+## 7. Django Bootstrap5
+
+> 1-4. 프로젝트 추가 설정에서  Bootstrap5 앱을 미리 등록했음
+>
+> 이제는 아래의 코드를 참조하여 Bootstrap5 테마를 전체적으로 적용시켜보기
+
+```django
+<!-- 먼저 new.html 에서 
+{% extends 'base.html' %}
+{% block content %} 
+{% endblock %} 부분 지우고, 아래와 같이 코드 수정 -->
+<!-- base.html 벗기고, Bootstrap5 입혀주기 -->
+
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<h1>글쓰기</h1>
+<form action="" method="POST">
+  {% csrf_token %}
+
+  {% bootstrap_form article_form %}
+
+  <!-- {{ article_form.as_p }} -->
+  
+  <input type="submit" value="글쓰기">
+</form>
+```

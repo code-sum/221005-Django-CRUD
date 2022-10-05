@@ -1,12 +1,15 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
 
 <h1>글쓰기</h1>
-<form action="{% url 'articles:create' %}" method="POST">
+<form action="" method="POST">
   {% csrf_token %}
-  {{ article_form.as_p }}
-  <input type="submit" value="글쓰기">
-</form>
 
-{% endblock %}
+  {% bootstrap_form article_form %}
+
+  <!-- {{ article_form.as_p }} -->
+
+  {% bootstrap_button button_type="submit" content="글쓰기" %}
+
+</form>

@@ -2,7 +2,10 @@
 
 {% block content %}
 
+{% load static %}
+
 <h1>안녕!</h1>
+<img src="{% static 'wow.jpg' %}" alt="img">
 
 <a href="{% url 'articles:create' %}">새글쓰기</a>
 {% for article in articles %}
