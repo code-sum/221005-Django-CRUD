@@ -9,7 +9,7 @@
 >
 > 💡 Django ModelForm I 필기와의 차이점 : 
 >
-> - 처음부터 ModelForm 활용해서  게시판 기능 구현하기
+> - (CRUD 시작할때) 처음부터 ModelForm 활용해서  게시판 기능 구현하기
 >
 > - Bootstrap5 패키지 활용하기
 >   - 🗂️ [(참고자료)](https://pypi.org/project/django-bootstrap5/)
@@ -99,7 +99,18 @@ TIME_ZONE = 'Asia/Seoul'
 
 #### 1-4-4. base.html 생성
 
+(1) 프로젝트 폴더(pjt) 보다 더 상단에 templates 폴더 생성
 
+(2) 새로 만든 templates 폴더 안에 base.html 파일 생성 (미리 만들어둔 base.html 파일 있으면 복붙)
+
+(3) settings.py 에서 새로 만든 templates 폴더 등록해주기
+
+```python
+# pjt/settings.py 에서 TEMPLATES = [] 안에
+# 'DIRS': [], 부분을 아래와 같이 수정
+
+'DIRS': [BASE_DIR/"templates"],
+```
 
 
 
@@ -137,10 +148,11 @@ INSTALLED_APPS = [
 > url 관리를 각 앱에서 관리할 수 있도록, include 활용해 분리하기
 
 ```python
-# 먼저 pjt/urls.py 에서
+# 먼저 pjt/urls.py 에서 아래와 같이 include import 한 다음
+# 'articles/' 경로로 향하는 path 추가
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
