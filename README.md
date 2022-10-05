@@ -599,19 +599,34 @@ def detail(request, pk):
 > ModelForm 활용해서 수정하는 것이 중요
 >
 > 수정하기 핵심 : '특정한' 글을 수정한다 => 사용자에게 수정할 수 양식을 제공하고(GET) 특정한 글을 수정한다(POST)
->
-> http://127.0.0.1:8000/articles/`<int:pk>`/update/
+
+- url 패턴 : `http://127.0.0.1:8000/articles/<int:pk>/update/`
+
+```django
+<!-- detail.html 페이지에 <a> 태그로 수정하기 버튼 먼저 생성 -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>{{ article.pk }}번 게시글</h1>
+<h3>{{ article.title }}</h3>
+<p>{{ article.created_at }} | {{ article.updated_at }}</p>
+<p>{{ article.content }}</p>
+<a href="{% url 'articles:update' article.pk %}">수정하기</a>
+
+{% endblock %}
+```
 
 ```python
 # articles/urls.py 에서 아래와 같이 update path 추가
+# 추가한 코드 : path('<int:pk>/update', views.update, name='update'),
 
 urlpatterns = [
     # 아래 주소에 들어오면 어떤 화면을 보여줄지
     # 생각하면서 path 를 작성 ...
     # http://127.0.0.1:8000/articles/
     path('', views.index, name='index'),
-    # http://127.0.0.1:8000/articles/new/
-    # path('new/', views.new, name='new'),
     # http://127.0.0.1:8000/articles/create/
     path('create/', views.create, name='create'),
     # http://127.0.0.1:8000/articles/1/ : 1번글
@@ -621,15 +636,6 @@ urlpatterns = [
     # http://127.0.0.1:8000/articles/3/update : 3번글 수정
     path('<int:pk>/update', views.update, name='update'),
 ]
-```
-
-```django
-<!-- detail.html 페이지에 a 태그로 수정하기 버튼 생성 -->
-
-<h1>{{ article.pk }}번 게시글</h1>
-<p>{{ article.created_at }} | {{ article.updated_at }}</p>
-<p>{{ article.content }}</p>
-<a href="{% url 'articles:update' article.pk %}">수정하기</a>
 ```
 
 ```python

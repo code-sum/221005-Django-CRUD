@@ -6,5 +6,6 @@
 <h3>{{ article.title }}</h3>
 <p>{{ article.created_at }} | {{ article.updated_at }}</p>
 <p>{{ article.content }}</p>
+<a href="{% url 'articles:update' article.pk %}">수정하기</a>
 
 {% endblock %}
