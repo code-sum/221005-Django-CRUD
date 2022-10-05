@@ -639,57 +639,8 @@ urlpatterns = [
 ```
 
 ```python
-# articles/views.py 에서 아래와 같이 update 함수 추가
-
-def update(request, pk):
-    # GET 처리 : Form 을 제공
-    article_form = ArticleForm()
-    context = {
-        'article_form': article_form
-    }
-    return render(request, 'articles/update.html', context)
-```
-
-```django
-<!-- update.html 생성하고 아래와 같이 내용 채우기 -->
-
-<h1>글 수정하기</h1>
-
-<form action="" method="POST">
-  {{ article_form.as_p }}
-  <input type="submit" value="수정">
-</form>
-```
-
-```python
-# articles/views.py 에서 update 함수를 아래와 같이 수정
-
-def update(request, pk):
-    # GET 처리 : Form 을 제공
-    article = Article.objects.get(pk=pk)
-    # 기존 instance 가진 상태의 ArticleForm()
-    article_form = ArticleForm(instance=article)
-    context = {
-        'article_form': article_form
-    }
-    return render(request, 'articles/update.html', context)
-```
-
-```django
-<!-- update.html 에서 form 태그 안에 csrf 코드 추가하기 -->
-
-<h1>글 수정하기</h1>
-
-<form action="" method="POST">
-  {% csrf_token %}
-  {{ article_form.as_p }}
-  <input type="submit" value="수정">
-</form>
-```
-
-```python
 # DB 에 실제 수정된 값 반영하기(저장하기)
-# articles/views.py 에서 update 함수 아래와 같이 수정하기
+# articles/views.py 에서 아래와 같이 update 함수 추가
 
 def update(request, pk):
     article = Article.objects.get(pk=pk)
@@ -710,11 +661,78 @@ def update(request, pk):
     return render(request, 'articles/update.html', context)
 ```
 
+```django
+<!-- update.html 생성하고 아래와 같이 내용 채우기 -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>글 수정하기</h1>
+<form action="" method="POST">
+  {% csrf_token %}
+  {{ article_form.as_p }}
+  <input type="submit" value="수정">
+</form>
+
+{% endblock %}
+```
+
 ### 4-6. [DELETE] 삭제하기
 
 > 삭제하기 핵심 : '특정한' 글을 삭제한다
 
 - url 패턴 : `http://127.0.0.1:8000/articles/<int:pk>/delete/`
+
+```python
+# articles/urls.py 에서 아래와 같이 delete path 추가
+# 추가한 코드 : path('<int:pk>/delete/', views.delete, name='delete'),
+
+urlpatterns = [
+    # 아래 주소에 들어오면 어떤 화면을 보여줄지
+    # 생각하면서 path 를 작성 ...
+    # http://127.0.0.1:8000/articles/
+    path('', views.index, name='index'),
+    # http://127.0.0.1:8000/articles/create/
+    path('create/', views.create, name='create'),
+    # http://127.0.0.1:8000/articles/1/ : 1번글
+    # http://127.0.0.1:8000/articles/3/ : 3번글
+    path('<int:pk>/', views.detail, name='detail'),
+    # http://127.0.0.1:8000/articles/1/update/ : 1번글 수정
+    # http://127.0.0.1:8000/articles/3/update/ : 3번글 수정
+    path('<int:pk>/update/', views.update, name='update'),
+    # http://127.0.0.1:8000/articles/1/delete/ : 1번글 삭제
+    # http://127.0.0.1:8000/articles/3/delete/ : 3번글 삭제
+    path('<int:pk>/delete/', views.delete, name='delete'),
+]
+```
+
+```python
+# articles/views.py 에서 아래와 같이 delete 함수 추가
+
+def delete(request, pk):
+    Article.objects.get(pk=pk).delete()
+    return redirect('articles:index')
+```
+
+```django
+<!-- detail.html 페이지에 <a> 태그로 삭제하기 버튼 생성 -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>{{ article.pk }}번 게시글</h1>
+<h3>{{ article.title }}</h3>
+<p>{{ article.created_at }} | {{ article.updated_at }}</p>
+<p>{{ article.content }}</p>
+<a href="{% url 'articles:update' article.pk %}">수정하기</a>
+<a href="{% url 'articles:delete' article.pk %}">삭제하기</a>
+
+{% endblock %}
+```
+
+
 
 
 
