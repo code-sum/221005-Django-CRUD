@@ -8,4 +8,6 @@ urlpatterns = [
     # 생각하면서 path 를 작성 ...
     # http://127.0.0.1:8000/articles/
     path('', views.index, name='index'),
+    # http://127.0.0.1:8000/articles/create/
+    path('create/', views.create, name='create'),
 ]

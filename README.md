@@ -307,92 +307,61 @@ $ python manage.py showmigrations
 
 ## 4. CRUD 기능 구현
 
-> 위 모델에 맞는 CRUD 기능 구현해보기
+> 위 모델에 맞는 CRUD 기능 구현해보기 
 
-### 4-1. [CREATE] 게시글 생성
+### 4-1. ModelForm 선언
+
+> **선언된 모델에 따른** 필드 구성 
+>
+> (1) form 생성 (2) 유효성 검사
+
+```python
+# ModelForm 생성하기
+# articles/forms.py 파일 새로 생성해서 아래와 같이 코드 채우기
+# Article model 에 있는 모든 fields 를 가져다가 쓰겠다는 의미임
+
+from django import forms
+from .models import Article
+
+class ArticleForm(forms.ModelForm):
+
+    class Meta:
+        model = Article
+        fields = '__all__'
+
+# 만약 여기서 title 입력란만 생성하고 싶으면
+# Meta class 안에 fields = ['title'] 이렇게 작성하면 되고,
+# title, content 입력란 생성하고 싶으면
+# Meta class 안에 fields = ['title', 'content'] 이렇게 작성
+```
+
+### 4-2. [CREATE] 게시글 생성
 
 > 핵심 : form 으로 데이터를 입력 받아서, DB 에 추가해야함
 >
-> 위 2가지 기능이 들어가기 때문에 url 도 2개가 필요한 것
+> = 사용자에게 HTML Form 제공, 입력받은 데이터를 처리 
 >
-> = 사용자에게 HTML Form 제공, 입력받은 데이터를 처리 (ModelForm 로직으로 변경)
-
-#### 4-1-1. [CREATE_기능1] HTML Form 제공
-
-> http://127.0.0.1:8000/articles/new/
+> 원래는 위 2가지 기능이 들어가기 때문에 url 도 2개가 필요하지만(new, create)
 >
-> 위의 url 을 new 함수에서 처리할 수 있도록 구현
-
-```python
-# articles/urls.py 에서 아래와 같이 path 채워넣기
-# 새로 추가한 코드 : path('new/', views.new, name='new'),
-
-from django.urls import path
-from . import views
-
-app_name = 'articles'
-
-urlpatterns = [
-    # 아래 주소에 들어오면 어떤 화면을 보여줄지
-    # 생각하면서 path 를 작성 ...
-    # http://127.0.0.1:8000/articles/
-    path('', views.index, name='index'),
-    # http://127.0.0.1:8000/articles/new/
-    path('new/', views.new, name='new'),
-]
-```
-
-```python
-# articles/views.py 에서 new 함수 생성
-# 새로 추가한 코드 : def new 부분
-
-from django.shortcuts import render
-
-# Create your views here.
-
-# 요청 정보를 받아서..
-def index(request):
-
-    # 원하는 페이지를 render..
-    return render(request, 'articles/index.html')
-
-def new(request):
-    return render(request, 'articles/new.html')
-```
+> **ModelForm 로직으로 변경하면서 create url 1개에 2가지 기능 넣을 수 있음**
 
 ```django
-<!-- articles/templates/articles 폴더 최하단에 
-     new.html 생성 -->
+<!-- articles/templates/articles 폴더 최하단 index.html 로 돌아가서
+     새글쓰기 버튼 일단 생성 -->
 
-<h1>글쓰기</h1>
+{% extends 'base.html' %}
 
-<!-- form : 사용자에게 양식을 제공하고 
-  값을 받아서(input : name, value)
-  서버에 전송(form : action) -->
-<form action="">
-  <label for="title">제목 : </label>
-  <input type="text" name="title" id="title">
-  <label for="content">내용 : </label>
-  <textarea name="content" id="content" cols="30" rows="10"></textarea>
-  <input type="submit" value="글쓰기">
-</form>
+{% block content %}
 
-<!-- 여기까지 작성 후,
-     http://127.0.0.1:8000/articles/new/ 접속했을때
-     서버 정상적으로 실행되는지 확인 -->
+<h1>안녕!</h1>
+<a href="{% url 'articles:create' %}">새글쓰기</a>
+
+{% endblock %}
 ```
-
-#### 4-1-2. [CREATE_기능2] 입력받은 데이터 처리
-
-> http://127.0.0.1:8000/articles/create/
->
-> 위의 url 을 create 함수에서 처리할 수 있도록 구현
->
-> 게시글 DB에 생성하고 index 페이지로 redirect (이건 설계하기 나름)
 
 ```python
 # articles/urls.py 에서 아래와 같이 path 채워넣기
-# 새로 추가한 코드 : path('create/', views.new, name='create'),
+# 새로 추가한 코드 : path('create/', views.create, name='create'),
 
 from django.urls import path
 from . import views
@@ -404,19 +373,17 @@ urlpatterns = [
     # 생각하면서 path 를 작성 ...
     # http://127.0.0.1:8000/articles/
     path('', views.index, name='index'),
-    # http://127.0.0.1:8000/articles/new/
-    path('new/', views.new, name='new'),
     # http://127.0.0.1:8000/articles/create/
     path('create/', views.create, name='create'),
 ]
 ```
 
 ```python
-# articles/views.py 에서 create 함수 생성
-# 새로 추가한 코드 : def create 부분
+# articles/views.py 에서 create 함수 작성
+# GET 메서드가 아닌 POST 메서드 사용하는게 핵심
 
 from django.shortcuts import render, redirect
-from .models import Article
+from .forms import ArticleForm
 
 # Create your views here.
 
@@ -426,53 +393,50 @@ def index(request):
     # 원하는 페이지를 render..
     return render(request, 'articles/index.html')
 
-def new(request):
-    return render(request, 'articles/new.html')
-
 def create(request):
-    # DB에 저장하는 로직
-    title = request.GET.get('title')
-    content = request.GET.get('content')
-    Article.objects.create(title=title, content=content)
-    return redirect('articles:index')
+    if request.method == 'POST':
+        # DB에 저장하는 로직
+        article_form = ArticleForm(request.POST)
+        if article_form.is_valid():
+            article_form.save()
+            return redirect('articles:index')
+    else: # request.method == 'GET':
+        # 일반적인 사이트들은 유효하지 않을 때
+        # 이슈가 발생한 페이지를 보여주고 정정하라고 하는데,
+        # ModelForm 활용해서 new.html 로 넘겨주라고 else 문 작성하면
+        # 우리가 원했던 기능이 구현됨
+        article_form = ArticleForm()
+    context = {
+        'article_form': article_form
+    }
+    return render(request, 'articles/new.html', context=context)
 ```
 
 ```django
-<!-- 앞서 작업하고 있던 new.html 파일의
-     form 태그 action DTL 로 작성
-     (DTL 활용 이유: url 을 변수화해서 쓰고 있기 때문) -->
+<!-- articles/templates/articles 폴더 최하단에 
+     아래와 같이 new.html 생성 -->
+
+{% extends 'base.html' %}
+
+{% block content %}
 
 <h1>글쓰기</h1>
-
-<!-- form : 사용자에게 양식을 제공하고 
-  값을 받아서(input : name, value)
-  서버에 전송(form : action) -->
-<form action="{% url 'articles:create' %}">
-  <label for="title">제목 : </label>
-  <input type="text" name="title" id="title">
-  <label for="content">내용 : </label>
-  <textarea name="content" id="content" cols="30" rows="10"></textarea>
+<form action="{% url 'articles:create' %}" method="POST">
+  {% csrf_token %}
+  {{ article_form.as_p }}
   <input type="submit" value="글쓰기">
 </form>
 
-<!-- 위와 같이 DTL 로 form 태그의 action 속성을 정의했지만,
-     서버 돌려서 http://127.0.0.1:8000/articles/new/ 페이지의
-     '페이지 소스 보기' 클릭하면 action 속성이 아래와 같이 변역되어있다
-     <form action="/articles/create/"> -->
+{% endblock %}
 
-<!-- 여기까지 create 기능을 구현한 다음, form 에 입력한 데이터가
+<!-- 여기까지 작성 후,
+     http://127.0.0.1:8000/articles/create/ 접속했을때
+     서버 정상적으로 실행되는지 확인 -->
+<!-- create 기능 구현이 완료되었다면, form 에 입력한 데이터가
      실제 DB에 반영되고 있는지 Open Databese 통해 확인하기 -->
 ```
 
-```django
-<!-- articles/templates/articles 폴더 최하단 index.html 로 돌아가서
-     새글쓰기 버튼 생성 -->
 
-<body>
-    <h1>안녕!</h1>
-    <a href="{% url 'articles:new' %}">새글쓰기</a>
-</body>
-```
 
 ### 4-2. [READ] 게시글 목록
 
@@ -567,18 +531,6 @@ def create(request):
        다른 사이트에서 요청이 변조된건 아닌지 확인하는 Django 기본 기능 -->
   ```
 
-  ```python
-  # 변화 2.
-  # articles/views.py 에서 create 함수에
-  # GET 메서드로 작성된 부분을 전부 POST 메서드로 바꿔주기
-  
-  def create(request):
-      # DB에 저장하는 로직
-      title = request.POST.get('title')
-      content = request.POST.get('content')
-      Article.objects.create(title=title, content=content)
-      return redirect('articles:index')
-  ```
 
 
 
@@ -606,26 +558,6 @@ def create(request):
     <textarea name="content" id="content" cols="30" rows="10" required></textarea>
     <input type="submit" value="글쓰기">
   </form>
-  ```
-
-  ```python
-  # 변화 2. BE 단에서 ModelForm 생성하기(1)
-  # articles/forms.py 파일 새로 생성해서 아래와 같이 코드 채우기
-  # Article model 에 있는 모든 fields 를 가져다가 쓰겠다는 의미임
-  
-  from django import forms
-  from .models import Article
-  
-  class ArticleForm(forms.ModelForm):
-  
-      class Meta:
-          model = Article
-          fields = '__all__'
-  
-  # 만약 여기서 title 입력란만 생성하고 싶으면
-  # Meta class 안에 fields = ['title'] 이렇게 작성하면 되고,
-  # title, content 입력란 생성하고 싶으면
-  # Meta class 안에 fields = ['title', 'content'] 이렇게 작성
   ```
 
   ```python
@@ -662,113 +594,7 @@ def create(request):
       Article.objects.create(title=title, content=content)
       return redirect('articles:index')
   ```
-
-  ```django
-  <!-- 변화 4. BE 단에서 ModelForm 생성하기(3) -->
-  <!-- articles/new.html 에서 {{ article_form.as_p }} 추가 -->
   
-  <form action="{% url 'articles:create' %}" method="POST">
-    {% csrf_token %}
-    {{ article_form.as_p }}
-    <label for="title">제목 : </label>
-    <input type="text" name="title" id="title" required>
-    <label for="content">내용 : </label>
-    <textarea name="content" id="content" cols="30" rows="10" required></textarea>
-    <input type="submit" value="글쓰기">
-  </form>
-  
-  <!-- 여기까지 작성하고 서버 돌려보면, form 이 중복되어 작성됨
-       위쪽은 ModelForm 이 만들어준거고, 아래는 우리가 직접 쓴거 -->
-  <!-- 따라서 {{ article_form.as_p }} 이하에 우리가 직접 작성한
-       label, input, label, textarea 주석처리해도 정상 작동 -->
-  ```
-
-  ```python
-  # 변화 5. BE 단에서 ModelForm 생성하기(4) : 유효성 검사
-  # 위 articles/views.py 에서 new 함수를 바꾼 것처럼,
-  # articles/views.py 에서 create 함수도 아래와 같이 수정하고
-  # 유효성 검사하기 위한 로직 만들기
-  
-  def create(request):
-      # DB에 저장하는 로직
-      article_form = ArticleForm(request.POST)
-      if article_form.is_valid():
-          article_form.save()
-          return redirect('articles:index')
-      else:
-          # 일반적인 사이트들은 유효하지 않을 때
-          # 이슈가 발생한 페이지를 보여주고 정정하라고 하는데,
-          # ModelForm 활용해서 new.html 로 넘겨주라고 else 문 작성하면
-          # 우리가 원했던 기능이 구현됨
-          context = {
-              'article_form': article_form
-          }
-          return render(request, 'articles/new.html', context=context)
-  
-  # 위와 같이 작성하고 제목이나 내용을 비운 상태로 글쓰기 버튼 누르면
-  # 유효성 검사를 통과하지 못했기 때문에, 글 작성이 안되는 것 확인 가능
-  # Django 공식 문서 : 'Validation on a ModelForm' 참조
-  ```
-
-  ```python
-  # 변화 6. BE 단에서 ModelForm 생성하기(5) : 코드 병합
-  # def new 아랫단과 def create 아랫단의 로직이 매우 유사하므로
-  # 이 두 함수를 하나로 합치는 작업
-  
-  # 2개 함수를 1개로 합치려면, 일단 2개로 나뉜 url을 1개로 병합
-  # 일단 articles/views.py 에서 def new 부분을 주석 처리하고
-  # def create 부분을 아래와 같이 수정
-  
-  # def new(request):
-  #     article_form = ArticleForm()
-  #     context = {
-  #         'article_form': article_form
-  #     }
-  #     return render(request, 'articles/new.html', context=context)
-  
-  def create(request):
-      if request.method == 'POST':
-          # DB에 저장하는 로직
-          article_form = ArticleForm(request.POST)
-          if article_form.is_valid():
-              article_form.save()
-              return redirect('articles:index')
-      else: # request.method == 'GET':
-          # 일반적인 사이트들은 유효하지 않을 때
-          # 이슈가 발생한 페이지를 보여주고 정정하라고 하는데,
-          # ModelForm 활용해서 new.html 로 넘겨주라고 else 문 작성하면
-          # 우리가 원했던 기능이 구현됨
-          article_form = ArticleForm()
-      context = {
-          'article_form': article_form
-      }
-      return render(request, 'articles/new.html', context=context)
-  ```
-
-  ```python
-  # 변화 7. BE 단에서 ModelForm 생성하기(6)
-  # articles/urls.py 에서 아래와 같이
-  # path('new/', views.new, name='new'), 부분 주석 처리
-  
-  urlpatterns = [
-      # 아래 주소에 들어오면 어떤 화면을 보여줄지
-      # 생각하면서 path 를 작성 ...
-      # http://127.0.0.1:8000/articles/
-      path('', views.index, name='index'),
-      # http://127.0.0.1:8000/articles/new/
-      # path('new/', views.new, name='new'),
-      # http://127.0.0.1:8000/articles/create/
-      path('create/', views.create, name='create'),
-  ]
-  ```
-
-  ```django
-  <!-- 변화 8. BE 단에서 ModelForm 생성하기(7) -->
-  <!-- index.html 에서 새글쓰기 버튼의 a 태그 링크도 아래와 같이 변경 -->
-  
-  <a href="{% url 'articles:create' %}">새글쓰기</a>
-  ```
-
   
 
 ### 4-3. [READ_detail] 상세보기
