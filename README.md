@@ -780,3 +780,52 @@ admin.site.register(Article)
 
 ## 6. Static files
 
+> 현 상태에서 메인 페이지에 이미지(정적 파일)를 넣고 싶을 때
+>
+> Django 는 아래와 같은 절차를 따름
+
+### 6-1. pjt/settings.py 확인하기
+
+```python
+# INSTALLED_APPS = [] 안에 django.contrib.staticfiles 가 있는지 확인
+
+INSTALLED_APPS = [
+    ...,
+    'django.contrib.staticfiles',
+]
+
+# STATIC_URL = '' 부분도 아래와 같이 정의되어 있는지 확인
+
+STATIC_URL = '/static/'
+```
+
+### 6-2. 템플릿에서 static 템플릿 태그 사용
+
+```django
+<!-- static 템플릿 태그 사용함으로써 지정된 상대경로에 대한 URL 빌드 -->
+<!-- 수정된 코드 : 아래 index.html 에서 {% load static %}, 
+                 <img> 태그 부분 참조 -->
+
+{% load static %}
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>안녕!</h1>
+<img src="{% static 'django_ex.png' %}" alt="img">
+
+<a href="{% url 'articles:create' %}">새글쓰기</a>
+{% for article in articles %}
+<h3><a href="{% url 'articles:detail' article.pk %}">{{ article.title }}</a></h3>
+<p>{{ article.created_at }} | {{ article.updated_at }}</p>
+<hr>
+{% endfor %}
+
+{% endblock %}
+```
+
+### 6-3. 앱의 static 디렉토리에 정적 파일을 저장
+
+- 예시) articles/static/django_ex.png
+- 생성된 static 폴더에는 images, css, js, fonts 파일들을 보관하는 다양한 폴더를 생성할 수 있음 (상세 내용은 pdf 참조)
