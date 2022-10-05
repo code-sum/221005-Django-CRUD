@@ -40,6 +40,8 @@ $ python -m pip install --upgrade pip
 # install Django 
 $ pip install django==3.2.13
 
+# install 
+
 # 내가 활용하고 있는 패키지들 기록지에 남기기
 $ pip freeze > requirements.txt
 ```
