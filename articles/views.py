@@ -32,3 +32,12 @@ def create(request):
         'article_form': article_form
     }
     return render(request, 'articles/new.html', context=context)
+
+def detail(request, pk):
+    # 특정 글을 가져온다.
+    article = Article.objects.get(pk=pk)
+    # template 에 객체 전달
+    context = {
+        'article': article
+    }
+    return render(request, 'articles/detail.html', context)

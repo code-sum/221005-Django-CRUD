@@ -4,6 +4,8 @@
 > 2. articles app 생성 및 등록
 > 3. Model 정의 (DB 설계)
 > 4. CRUD 기능 구현
+> 5. Admin site
+> 6. Static files
 >
 > 
 >
@@ -20,6 +22,14 @@
 > - (프로젝트 추가 설정 단계에) base.html 적용
 > - Admin site
 > - Static files
+>
+> 
+>
+> 💡 추천 학습자료
+>
+> - [HTTP request & response object](https://docs.djangoproject.com/en/4.1/ref/request-response/)
+> - [ModelForm](https://docs.djangoproject.com/en/4.1/topics/forms/modelforms/)
+> - [Django view shortcut functions](https://docs.djangoproject.com/en/4.1/topics/http/shortcuts/)
 
 
 
@@ -452,6 +462,7 @@ def create(request):
 # 수정된 코드 : def index 부분
 
 from django.shortcuts import render, redirect
+from .forms import ArticleForm
 from .models import Article
 
 # Create your views here.
@@ -462,20 +473,28 @@ def index(request):
     # (보통 게시판은 최신글이 맨위니까 .order_by('-pk') 활용)
     articles = Article.objects.order_by('-pk')
     # template 에 뿌려준다
-	context = {
+    context = {
         'articles': articles
     }
     return render(request, 'articles/index.html', context)
 
-def new(request):
-    return render(request, 'articles/new.html')
-
 def create(request):
-    # DB에 저장하는 로직
-    title = request.GET.get('title')
-    content = request.GET.get('content')
-    Article.objects.create(title=title, content=content)
-    return redirect('articles:index')
+    if request.method == 'POST':
+        # DB에 저장하는 로직
+        article_form = ArticleForm(request.POST)
+        if article_form.is_valid():
+            article_form.save()
+            return redirect('articles:index')
+    else: # request.method == 'GET':
+        # 일반적인 사이트들은 유효하지 않을 때
+        # 이슈가 발생한 페이지를 보여주고 정정하라고 하는데,
+        # ModelForm 활용해서 new.html 로 넘겨주라고 else 문 작성하면
+        # 우리가 원했던 기능이 구현됨
+        article_form = ArticleForm()
+    context = {
+        'article_form': article_form
+    }
+    return render(request, 'articles/new.html', context=context)
 ```
 
 ```django
@@ -483,77 +502,43 @@ def create(request):
 <!-- articles/templates/articles 폴더 최하단 index.html 에서
      게시글 title 목록 생성 (DTL 반복문 활용) -->
 
-<body>
-  <h1>안녕!</h1>
-  <a href="{% url 'articles:new' %}">새글쓰기</a>
-  {% for article in articles %}
-  <h3>{{ article.title }}</h3>
-  <p>{{ article.created_at }} | {{ article.updated_at }}</p>
-  <hr>
-  {% endfor %}
-</body>
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>안녕!</h1>
+<a href="{% url 'articles:create' %}">새글쓰기</a>
+{% for article in articles %}
+<h3>{{ article.title }}</h3>
+<p>{{ article.created_at }} | {{ article.updated_at }}</p>
+<hr>
+{% endfor %}
+
+{% endblock %}
 ```
 
-
-
-- ModelForm
-
-  ```python
-  # 변화 3. BE 단에서 ModelForm 생성하기(2)
-  # ModelForm 의 인스턴스를 넘겨줘서 new.html 에 작성된 form 대체해야 함
-  # 따라서 articles/views.py 에서 new 함수를 아래와 같이 수정
-  
-  from django.shortcuts import render, redirect
-  from .models import Article
-  from .forms import ArticleForm
-  
-  # 요청 정보를 받아서..
-  def index(request):
-      # 게시글을 가져와서..
-      # (보통 게시판은 최신글이 맨위니까 .order_by('-pk') 활용)
-      articles = Article.objects.order_by('-pk')
-      # template 에 뿌려준다
-      context = {
-          'articles': articles
-      }
-      return render(request, 'articles/index.html', context)
-  
-  def new(request):
-      article_form = ArticleForm()
-      context = {
-          'article_form': article_form
-      }
-      return render(request, 'articles/new.html', context=context)
-  
-  def create(request):
-      # DB에 저장하는 로직
-      title = request.POST.get('title')
-      content = request.POST.get('content')
-      Article.objects.create(title=title, content=content)
-      return redirect('articles:index')
-  ```
-
-  
-
-
-### 4-3. [READ_detail] 상세보기
+### 4-4. [READ_detail] 상세보기
 
 > 수정하기(UPDATE) 기능을 구현하기 위해, 상세보기 페이지를 먼저 작성
 >
 > 상세보기 핵심 : '특정한' 글을 본다
->
-> url 패턴 : http://127.0.0.1:8000/articles/`<int:pk>`/
+
+- url 패턴 : `http://127.0.0.1:8000/articles/<int:pk>/`
 
 ```python
 # articles/urls.py 에서 detail 페이지로 넘어가는 path 를 아래와 같이 작성
+# 추가된 코드 : path('<int:pk>/', views.detail, name='detail'), 
+
+from django.urls import path
+from . import views
+
+app_name = 'articles'
 
 urlpatterns = [
     # 아래 주소에 들어오면 어떤 화면을 보여줄지
     # 생각하면서 path 를 작성 ...
     # http://127.0.0.1:8000/articles/
     path('', views.index, name='index'),
-    # http://127.0.0.1:8000/articles/new/
-    # path('new/', views.new, name='new'),
     # http://127.0.0.1:8000/articles/create/
     path('create/', views.create, name='create'),
     # http://127.0.0.1:8000/articles/1/ : 1번글
@@ -578,34 +563,38 @@ def detail(request, pk):
 ```django
 <!-- detail.html 생성하고 아래와 같이 내용 채우기 -->
 
+{% extends 'base.html' %}
+
+{% block content %}
+
 <h1>{{ article.pk }}번 게시글</h1>
+<h3>{{ article.title }}</h3>
 <p>{{ article.created_at }} | {{ article.updated_at }}</p>
 <p>{{ article.content }}</p>
+
+{% endblock %}
 ```
 
 ```django
 <!-- index.html 에서 게시글 title 을 누르면 detail 페이지로
      넘어가게끔 a 태그의 href 작성 -->
 
-<body>
-  <h1>안녕!</h1>
-  <a href="{% url 'articles:create' %}">새글쓰기</a>
-  {% for article in articles %}
-  <h3><a href="{% url 'articles:detail' article.pk %}">{{ article.title }}</a></h3>
-  <p>{{ article.created_at }} | {{ article.updated_at }}</p>
-  <hr>
-  {% endfor %}
-</body>
+{% extends 'base.html' %}
 
+{% block content %}
+
+<h1>안녕!</h1>
+<a href="{% url 'articles:create' %}">새글쓰기</a>
+{% for article in articles %}
+<h3><a href="{% url 'articles:detail' article.pk %}">{{ article.title }}</a></h3>
+<p>{{ article.created_at }} | {{ article.updated_at }}</p>
+<hr>
+{% endfor %}
+
+{% endblock %}
 ```
 
-### 4-4. 삭제하기
-
-> 삭제하기 핵심 : '특정한' 글을 삭제한다
->
-> http://127.0.0.1:8000/articles/`<int:pk>`/delete/
-
-### 4-5. 수정하기
+### 4-5. [UPDATE] 수정하기
 
 > ModelForm 활용해서 수정하는 것이 중요
 >
@@ -714,4 +703,18 @@ def update(request, pk):
     }
     return render(request, 'articles/update.html', context)
 ```
+
+### 4-6. [DELETE] 삭제하기
+
+> 삭제하기 핵심 : '특정한' 글을 삭제한다
+
+- url 패턴 : `http://127.0.0.1:8000/articles/<int:pk>/delete/`
+
+
+
+## 5. Admin site
+
+
+
+## 6. Static files
 
