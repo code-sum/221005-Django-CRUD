@@ -858,24 +858,25 @@ STATIC_URL = '/static/'
 > 이제는 아래의 코드를 참조하여 Bootstrap5 테마를 모델폼에 적용시키기
 
 ```django
-<!-- 먼저 new.html 에서 
+<!-- new.html 을 아래와 같이 바꿔주기 -->
+
 {% extends 'base.html' %}
-{% block content %} 
-{% endblock %} 부분 지우고, 아래와 같이 코드 수정 -->
-<!-- base.html 벗기고, Bootstrap5 입혀주기 -->
 
-{% load django_bootstrap5 %}
-{% bootstrap_css %}
-{% bootstrap_javascript %}
+{% block content %}
 
-<h1>글쓰기</h1>
-<form action="" method="POST">
-  {% csrf_token %}
+  {% load django_bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
 
-  {% bootstrap_form article_form %}
+  <h1>글쓰기</h1>
+  <form action="" method="POST">
+    {% csrf_token %}
 
-  <!-- {{ article_form.as_p }} -->
-  
-  {% bootstrap_button button_type="submit" content="글쓰기" %}
-</form>
+    {% bootstrap_form article_form %}
+
+    {% bootstrap_button content="글쓰기" button_type="submit" button_class="btn-primary col-3" %}
+
+  </form>
+
+{% endblock %}
 ```
